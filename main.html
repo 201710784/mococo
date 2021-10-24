@@ -1,0 +1,203 @@
+<html>
+
+<head>
+
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="hello.js"></script>
+    <link href="font.css" rel="stylesheet" type="text/css">
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script>
+            
+            function requestAPI(url, request_data, requestType) {
+            var return_val = "";
+            var api_url = url;
+            
+            $.ajax(
+                {
+                type: requestType,
+                url: api_url,
+                timeout: 1000,
+                async: false,
+                data: request_data,
+                contentType: "application/json",
+                success: function (data, status, xhr) {
+                    return_val = data;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert("ERROR : " + jqXHR.responseText);
+                    return false;
+                },
+            });
+
+            return return_val;
+        }
+
+
+	    function changeCompleted1(todoId) 
+        {
+            requestAPI("http://127.0.0.1:8000/todos/completed/"+todoId+"/false","","PUT")
+            loadData()
+        }
+
+        function changeCompleted2(todoId)
+        {
+            requestAPI("http://127.0.0.1:8000/todos/completed/"+todoId+"/true","","PUT")
+            loadData()
+        }
+
+
+	    function changeImportant1(todoId)
+        {
+            requestAPI("http://127.0.0.1:8000/todos/important/"+todoId+"/false","","PUT")
+            loadData()
+        }
+
+        function changeImportant2(todoId)
+        {
+            requestAPI("http://127.0.0.1:8000/todos/important/"+todoId+"/true","","PUT")
+            loadData()
+        }
+
+
+        function saveTodo() {
+            //var todoName = document.getElementById("text-todo-name").value;
+            var todoName = $("#text-todo-name").val() // jquery버전
+            if (todoName == "")
+                $("#span-alert").html("빈칸입니다.")
+            else
+                {
+                    requestAPI("http://127.0.0.1:8000/todos?name="+todoName,"","POST")
+                    loadData()
+                }
+        }
+        
+        function deleteTodo(todoId)
+        {
+            requestAPI("http://127.0.0.1:8000/todos/"+todoId,"","DELETE")
+            loadData()
+        }
+
+
+        function loadData()
+        {
+            datalist = requestAPI("http://127.0.0.1:8000/todos", "", "GET")
+            console.log(datalist)
+
+            $("#tbody-todo").html("")
+
+            for(var i in datalist)
+            {
+                var todoId = datalist[i].TODO_ID;
+                var todoName = datalist[i].TODO_NAME;
+                var isCompleted = datalist[i].IS_COMPLETED;
+                var isImportant = datalist[i].IS_IMPORTANT;
+
+                var num = Number(i) + 1
+		                
+
+
+            if(isCompleted == 1){
+                var com =
+                `
+                    <input class="form-check-input" type="checkbox" checked onclick="changeCompleted1(${todoId})"></input>
+                `
+            }
+            else{
+                var com =
+                `
+                    <input class="form-check-input" type="checkbox" onclick="changeCompleted2(${todoId})"></input>
+                `
+            }
+                
+            if(isImportant == 1){
+                var imp =
+                `
+                    <input class="form-check-input" type="checkbox" checked onclick="changeImportant1(${todoId})"></input>
+                `
+            }
+            else{
+                var imp =
+                `
+                    <input class="form-check-input" type="checkbox" onclick="changeImportant2(${todoId})"></input>
+                `
+            }
+
+
+		var tableData = 
+                `
+                    <tr>
+                        <td>${num}</td>
+                        <td>${todoName}</td>
+                        <td>${com}</td>
+                        <td>${imp}</td>
+                        <td><button type="button" class="btn btn-danger" onclick="deleteTodo(${todoId})">삭제</button></td>
+                    </tr>
+                `
+                $("#tbody-todo").append(tableData)
+
+            }
+
+        }
+
+        // A $( document ).ready() block.
+        $( document ).ready(function() {
+            loadData();
+        });
+
+    </script>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <p class="fs-1">TODO LIST</p>
+        <br />
+
+        <form>
+
+            <div class="row">
+
+        
+                    <label for="exampleInputEmail1" class="form-label">할일명</label>
+                    <input type="text" class="form-control" id="text-todo-name" aria-describedby="emailHelp">
+              
+                
+                </div>
+                <div class="mb-3 form-check">
+
+                </div>
+                <button type="button" class="btn btn-primary" onclick="saveTodo()">저장</button>
+
+                <br/>
+                <center>
+                    <h3>
+                        <span id="span-alert"></span>
+                    </h3>
+                </center>
+            </div>
+
+        </form>
+
+        <table class="table table-striped">
+            <thead>
+                <th class="font-red">번호</th>
+                <th class="font-red">할일</th>
+                <th>완료 여부</th>
+                <th>중요도</th>
+                <th>삭제</th>
+            </thead>
+            <tbody id="tbody-todo">
+           
+            </tbody>
+        </table>
+
+
+
+    </div>
+
+</body>
+
+</html>
